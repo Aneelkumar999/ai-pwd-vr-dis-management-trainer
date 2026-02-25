@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>AI-Powered VR Disaster Trainer</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script
+        src="https://unpkg.com/aframe-particle-system-component@1.0.x/dist/aframe-particle-system-component.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="js/disaster-manager.js"></script>
+    <script src="js/ai-agent.js"></script>
+    <script src="js/environment.js"></script>
+    <script src="js/networked-player.js"></script>
+</head>
+
+<body>
+    <a-scene background="color: #ECECEC">
+        <!-- Asset Management -->
+        <a-assets>
+            <img id="groundTexture" src="https://cdn.aframe.io/a-painter/images/floor.jpg">
+            <img id="skyTexture" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/sechelt.jpg">
+        </a-assets>
+
+        <!-- Environment -->
+        <a-entity city-environment></a-entity>
+        <a-plane src="#groundTexture" rotation="-90 0 0" width="30" height="30" repeat="10 10"></a-plane>
+
+        <!-- Flood Water Plane (Initially Hidden) -->
+        <a-plane id="floodPlane" color="#0077BE" opacity="0.8" rotation="-90 0 0" width="100" height="100"
+            visible="false" position="0 -1 0"></a-plane>
+        <a-sky src="#skyTexture"></a-sky>
+
+
+        <!-- Lighting -->
+        <a-light type="ambient" color="#445451"></a-light>
+        <a-light type="point" intensity="2" position="2 4 4"></a-light>
+
+        <!-- Camera & Controls -->
+        <a-entity id="rig" position="0 1.6 0" networked-player>
+            <a-camera look-controls wasd-controls>
+                <a-cursor></a-cursor>
+            </a-camera>
+            <a-entity laser-controls="hand: left"></a-entity>
+            <a-entity laser-controls="hand: right"></a-entity>
+        </a-entity>
+
+        <!-- Disaster Manager (Communicates with Backend) -->
+        <a-entity disaster-manager></a-entity>
+
+        <!-- Placeholder for Dynamic Agents -->
+        <a-entity id="agent-container"></a-entity>
+
+    </a-scene>
+
+    <!-- UI Overlay -->
+    <div
+        style="position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.7); padding: 10px; color: white; border-radius: 5px; font-family: sans-serif;">
+        <h3 style="margin-top: 0;">Disaster Control</h3>
+        <div style="margin-bottom: 5px;">
+            <strong>Fire:</strong>
+            <button onclick="startSim('fire')">ON</button>
+            <button onclick="stopSim('fire')">OFF</button>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <strong>Flood:</strong>
+            <button onclick="startSim('flood')">ON</button>
+            <button onclick="stopSim('flood')">OFF</button>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <strong>Earthquake:</strong>
+            <button onclick="startSim('earthquake')">ON</button>
+            <button onclick="stopSim('earthquake')">OFF</button>
+        </div>
+        <hr style="border-top: 1px solid #555; margin: 5px 0;">
+        <div style="margin-bottom: 5px;">
+            <strong>Chemical Spill:</strong>
+            <button onclick="startSim('chemical_spill')">ON</button>
+            <button onclick="stopSim('chemical_spill')">OFF</button>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <strong>Instant Events:</strong><br>
+            <button onclick="startSim('explosion')">Explosion</button>
+            <button onclick="startSim('collapse')">Collapse Bldg</button>
+        </div>
+    </div>
+
+    <script>
+        function startSim(type) {
+            console.log("Start Disaughter:", type);
+            let dm = document.querySelector('[disaster-manager]');
+            if (dm && dm.components['disaster-manager']) {
+                dm.components['disaster-manager'].socket.emit('start_simulation', { type: type });
+            }
+        }
+
+        function stopSim(type) {
+            console.log("Stop Disaster:", type);
+            let dm = document.querySelector('[disaster-manager]');
+            if (dm && dm.components['disaster-manager']) {
+                // Call local stop immediately for responsiveness
+                dm.components['disaster-manager'].stopDisaster(type);
+                // Optional: Tell backend if it supports it
+                try {
+                    dm.components['disaster-manager'].socket.emit('stop_simulation', { type: type });
+                } catch (e) { }
+            }
+        }
+    </script>
+</body>
+
+</html>
