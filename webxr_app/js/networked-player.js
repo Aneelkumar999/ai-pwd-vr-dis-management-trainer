@@ -1,6 +1,6 @@
 AFRAME.registerComponent('networked-player', {
     schema: {
-        serverUrl: { type: 'string', default: 'http://localhost:5000' }
+        serverUrl: { type: 'string', default: window.BACKEND_URL || 'http://localhost:5000' }
     },
 
     init: function () {

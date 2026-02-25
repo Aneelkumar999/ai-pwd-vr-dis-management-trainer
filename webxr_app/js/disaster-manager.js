@@ -19,7 +19,7 @@ AFRAME.registerComponent('water-flow', {
 
 AFRAME.registerComponent('disaster-manager', {
     schema: {
-        serverUrl: { type: 'string', default: 'http://localhost:5000' }
+        serverUrl: { type: 'string', default: window.BACKEND_URL || 'http://localhost:5000' }
     },
 
     init: function () {
